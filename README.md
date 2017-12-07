@@ -10,5 +10,3 @@ Ab 11.01.18 Präsentation und Diskussion der Szenarien
 Weitere Aufgaben/Termine:
   - Erstellen/Verifizieren einer EC-Signatur im Smart Contract
   - 22.12 Klausurvorbereitung
-
-test
