@@ -119,24 +119,12 @@ contract checkInOut
 		//checkInTime des Autos speichern
 		car[parkhaus][carCount[parkhaus]][1] = now;
 		
-		//Einsatz zum Jackpot addieren
-		jackpot(value);
+		//Autozahl erhöhen
+		carCount[parkhaus} +=1;
 
-		//Event auslösen, da der Beitritt erfolgreich war
+		//Event auslösen, da die Einfahrt erfolgreich war
 		join_success(msg.sender);
 
-		//prüfen, ob schon genug Spieler vorhanden sind
-		if (playerLim == playerCount)
-		{
-			//Event auslösen, um zum Entschlüsseln aufzufordern
-			pleaseUnlock();
-
-			//Zeitpunkt speichern, zudem der letzte Spieler begetreten ist
-			startTime = now;
-		}
-
-		//Spielerzähler um eins erhöhen
-		playerCount = playerCount + 1;
 	}
 
 	//#endregion
