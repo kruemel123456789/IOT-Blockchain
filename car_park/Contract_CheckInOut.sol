@@ -46,7 +46,9 @@ contract checkInOut is mortal
 	Event bei erfolgreicher Teilnahme am Spiel
 	@param player - Es wird die Adresse von Spieler ausgegeben
 	*/
-	event join_success(address player);
+	event join_success_In(address player);
+
+	event join_success_Out(address player);
 
 
 	//#endregion
@@ -61,18 +63,6 @@ contract checkInOut is mortal
 
     /*Beitritt zum Spiel
 
-    Der Spieler tritt durch Aufruf der Funktion dem Spiel bei.
-	Es muss der zuvor berechnete Hash übergeben werden.
-
-	Die Funktion überprüft, ob der Spieler bereits beigetreten ist.
-	Die Funktion überprüft, ob der Spieler genug Einsatz bezahlt hat.
-	Die Funktion überprüft, ob nach Plätze frei sind.
-	War dies erfolgreich werden Adresse und Hash des Spielers gespeichert.
-	Außerdem wird der Einsatz zum Jackpot addiert und ein Event ausgelöst,
-	da der Beitritt erfolgreich war.
-	Ist die gewünschte Spielerzahl erreicht, so wird durch ein Event zum Entschlüsseln
-	aufgefordert und die Zeit gespeichert
-	Im letzen Schritt der Funktion wird die Spielerzahl erhöht
 
 	Beispielhafter Aufruf:
 	spiel.join_game.sendTransaction("0x123hashwer456",{from:'0x123adresse456', value: web3.toWei(1.0,"ether"), gas:1000000})
@@ -126,8 +116,26 @@ contract checkInOut is mortal
 		carCount[parkhaus] +=1;
 
 		//Event auslösen, da die Einfahrt erfolgreich war
-		join_success(msg.sender);
+		join_success_In(msg.sender);
 
+	}
+
+	function checkOut(uint256 parkhaus)  payable public returns (string s)
+	{
+	    uint id_car = uint(msg.sender);
+	    for (uint256 i=0; i < parkLim[parkhaus];i++)
+		{
+			if (car[parkhaus][i][0] == id_car)
+			{
+			    //checkOutTime des Autos speichern
+	        	car[parkhaus][i][4] = now;
+			}
+		}
+		 //Autozahl reduzieren
+		carCount[parkhaus] -=1;
+
+    //Event auslösen, da die Ausfahrt erfolgreich war
+		join_success_Out(msg.sender);
 	}
 
 	//#endregion
