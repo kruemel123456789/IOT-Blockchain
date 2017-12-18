@@ -1,9 +1,9 @@
- pragma solidity ^0.4.18;
- 
- contract parkingLot
+pragma solidity ^0.4.18;
+
+library parkingLot
+{
+ function freeSpots(uint256 parkhaus) internal constant returns (uint256)
  {
-  function freeSpots(uint256 parkhaus) public returns (uint256 freeSpots)
-  {
-   return 1;
-  }
+  return 1;
  }
+}
