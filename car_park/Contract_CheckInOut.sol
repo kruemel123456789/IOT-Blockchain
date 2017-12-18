@@ -1,16 +1,16 @@
 pragma solidity ^0.4.18;
-import {parkingLot} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_ParkingLot.sol";
-
+import "browser/Contract_ParkingLot.sol"; //import {parkingLot} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_ParkingLot.sol";
+import "browser/Contract_Mortal.sol"; //import {mortal} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_Mortal.sol";
 /*
 Um die Events nutzen zu können, sollte "Events.js" in einer eigenen Console geladen werden
 */
 
 
 //Contract für das eigentlich Spiel, erbt von mortal
-contract checkInOut
+contract checkInOut is mortal
 {
 	//#region Variablen und Konstanten Deklaration
-	
+
 	// Zum Debuggen (An -> 1 / Aus -> 0)
 	uint256 constant debug = 1;
 
@@ -19,24 +19,24 @@ contract checkInOut
 
 	//Zeitpunkt, zu dem genung Mitspieler vorhanden sind
 	uint256 startTime;
-	
-	//array1[] --> parkhaus
+
+	//array3[] --> parkhaus
 	//array2[] --> autonummer(counter)
-	//array3[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime
-	uint256[][][5]  car;
-	
+	//array1[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime
+	uint256[5][100][1]  car;
+
 	//Anzahl der Parkhäuser
 	uint256 parks = 1;
-	
+
 	//Parkhaus
-	uint256 parkhaus = 1;
-	
+	uint256 parkhaus = 0;
+
 	//Parklimit der Parkhäuser[Anzahl der Parkhäuser]
-	uint256[1] parkLim = 100;
-	
+	uint256[1] parkLim  = [100];
+
 	//Zählerstand der Autos[Anzahl der Parkhäuser]
 	uint256[1] carCount;
-	
+
 
 	//#endregion
 
@@ -80,15 +80,18 @@ contract checkInOut
     @param hash  - Hashwert aus der Funktion greateHash()
     @returns s - Es wird der Text zu debug-Zwecken zurückgegeben
 	*/
-	function checkIn(uint256 parkhaus) payable public
+	function checkIn(uint256 parkhaus) payable public returns (string s)
 	{
 		//Maximalbetrag speichern
 		uint256 value = msg.value;
 
+		//prüfen, ob das Parkhaus existiert
+
 		//prüfen, ob das Auto schon im Parkhaus ist
-		for (uint256 i=0; i <= parkLim[parkhaus];i++)
+		for (uint256 i=0; i < parkLim[parkhaus];i++)
 		{
-			if (car[i][1] == msg.sender)
+		    uint id_car = uint(msg.sender);
+			if (car[parkhaus][i][0] == id_car)
 			{
 				if(debug == 0){ revert(); }
 				if(debug == 1){ return ("Auto schon vorhanden!" );}
@@ -96,7 +99,7 @@ contract checkInOut
 		}
 
 		//prüfen, ob noch Plätze im Parkaus frei sind und ob genug Gebühr bezahlt wurde
-		if ( parkLim < parkingLot.freeSpots(parkhaus) && value < maxPayDeposit)	//Zu viele Autos und zu wenig Gebühr
+		if ( parkLim[parkhaus] < parkingLot.freeSpots(parkhaus) && value < maxPayDeposit)	//Zu viele Autos und zu wenig Gebühr
 		{
 			if(debug == 1){  return ("Zu viele Autos und zu wenig Gebühr");}
 			if(debug == 0){ revert(); }
@@ -107,36 +110,24 @@ contract checkInOut
 			if(debug == 0){ revert(); }
 
 		}
-		else if(parkLim < parkingLot.freeSpots(parkhaus))				//Zu viele Autos
+		else if(parkLim[parkhaus] < parkingLot.freeSpots(parkhaus))				//Zu viele Autos
 		{
 			if(debug == 1){ return("Zu viele Autos in diesem Parkhaus");}
 			if(debug == 0){ revert();}
 		}
 
 		//Adresse des Spielers speichern
-		car[parkhaus][carCount[parkhaus]][1] = msg.sender;
+		car[parkhaus][carCount[parkhaus]][0] = uint256(msg.sender);
 
 		//checkInTime des Autos speichern
 		car[parkhaus][carCount[parkhaus]][1] = now;
-		
-		//Einsatz zum Jackpot addieren
-		jackpot(value);
 
-		//Event auslösen, da der Beitritt erfolgreich war
+		//Autozahl erhöhen
+		carCount[parkhaus] +=1;
+
+		//Event auslösen, da die Einfahrt erfolgreich war
 		join_success(msg.sender);
 
-		//prüfen, ob schon genug Spieler vorhanden sind
-		if (playerLim == playerCount)
-		{
-			//Event auslösen, um zum Entschlüsseln aufzufordern
-			pleaseUnlock();
-
-			//Zeitpunkt speichern, zudem der letzte Spieler begetreten ist
-			startTime = now;
-		}
-
-		//Spielerzähler um eins erhöhen
-		playerCount = playerCount + 1;
 	}
 
 	//#endregion
