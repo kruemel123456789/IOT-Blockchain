@@ -1,1 +1,36 @@
- 
+> geth --rinkeby
+> geth attach http://141.19.96.203:8545   //login auf server
+(Linux):   > geth attach ~/.ethereum/rinkeby/geth.ipc
+(Windows): > geth attach ~/AppData/Roaming/Ethereum/Rinkeby/geth.ipc
+
+> personal.unlockAccount('0x670Aab912cC21274d736A188Bd61dfd791A93c13')  //Adresse Felix
+> personal.unlockAccount('0x37D960E44acC2FD6154b178f8386B59ee000927b')  //Adresse Chris
+> personal.unlockAccount('0x5f8f3ed0cafb7fe5180d7ae684bb2bf80747dfb6')  //Adresse Chris 2
+
+
+
+
+
+
+//----------------------------------------------------------------------------
+loadScript("/????.js")   
+
+> null [object Object]
+Contract mined! address: 0x6d04098761d608aa52260491d79f71cb411b61e5 transactionHash: 0x2ebd79fc81f7148b04216ec312608b04896b384f7bddc2556ff3801fb3df5544
+
+//----------------------------------------------------------------------------
+
+
+> greeter = web3.eth.contract([{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_newgreeting","type":"string"}],"name":"changestring","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"greet","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_greeting","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]).at('0xD1606bf5a538EED8a4242583A40c70BfB002272A'); //greeter einer variablen zuweißen
+
+
+//---------------------------------------------------------------------------------------
+
+> eth.sendTransaction({from:'0x670Aab912cC21274d736A188Bd61dfd791A93c13',to:'0x37D960E44acC2FD6154b178f8386B59ee000927b',value: web3.toWei(10.0,"ether")})
+
+> spiel.kill.sendTransaction({from:'0x670Aab912cC21274d736A188Bd61dfd791A93c13'})
+
+
+
+--------------------------------------Events -----------------------------------
+loadScript("/????.js") 

@@ -56,15 +56,19 @@ contract checkInOut is mortal
 	Event bei erfolgreicher Teilnahme am Spiel
 	@param player - Es wird die Adresse von Spieler ausgegeben
 	*/
-	event join_success_In(address player, uint256 parkhaus);
+	event join_success_In(address car, uint256 parkhaus);
 	
-	event join_success_Out(address player, uint256 parkhaus);
+	event join_success_Out(address car, uint256 parkhaus);
 	
-	event free_parking(address player);
+	event free_parking(address car);
 	
-	event pay_fee(address player, uint256 value, uint256 parkingTime);
+	event pay_fee(address car, uint256 value, uint256 parkingTime);
 	
-	event pay_max(address player, uint256 value, uint256 parkingTime);
+	event pay_max(address car, uint256 value, uint256 parkingTime);
+	
+	event free_spots(uint256 parkhaus, uint256 frei);
+	
+	event show_car(address car,uint256 parkhaus, uint256 parkingTime, uint256 value_now);
 	
 	
 
@@ -105,7 +109,7 @@ contract checkInOut is mortal
 		}
 
 		//prüfen, ob noch Plätze im Parkaus frei sind und ob genug Gebühr bezahlt wurde
-		if ( parkLim[parkhaus] < parkingLot.freeSpots(parkhaus) && value < maxPayDeposit)	//Zu viele Autos und zu wenig Gebühr
+		if ( parkLim[parkhaus] < freeSpots(parkhaus) && value < maxPayDeposit)	//Zu viele Autos und zu wenig Gebühr
 		{
 			if(debug == 1){  return ("Zu viele Autos und zu wenig Gebühr");}
 			if(debug == 0){ revert(); }
@@ -116,7 +120,7 @@ contract checkInOut is mortal
 			if(debug == 0){ revert(); }
 
 		}
-		else if(parkLim[parkhaus] < parkingLot.freeSpots(parkhaus))				//Zu viele Autos
+		else if(parkLim[parkhaus] < freeSpots(parkhaus))				//Zu viele Autos
 		{
 			if(debug == 1){ return("Zu viele Autos in diesem Parkhaus");}
 			if(debug == 0){ revert();}
@@ -136,7 +140,7 @@ contract checkInOut is mortal
 
 	}
 	
-	function checkOut(uint256 parkhaus)  payable public returns (string s)
+	function checkOut(uint256 parkhaus)  payable public
 	{
 	    uint id_car = uint(msg.sender);
 			
@@ -174,40 +178,81 @@ contract checkInOut is mortal
 		}
 	}
 	
-	    function payNow(uint256 carnum, uint256 parkhaus) private
+    function payNow(uint256 carnum, uint256 parkhaus) private
+    {
+        if (car[parkhaus][carnum][2] == 0 && car[parkhaus][carnum][3] == 0)
         {
-            if (car[parkhaus][carnum][2] == 0 && car[parkhaus][carnum][3] == 0)
+            uint256 time = car[parkhaus][carnum][4] - car[parkhaus][carnum][1];
+            address player_adress = address(car[parkhaus][carnum][0]);
+            
+            if (time < free_time)
             {
-                uint256 time = car[parkhaus][carnum][4] - car[parkhaus][carnum][1];
-                address player_adress = address(car[parkhaus][carnum][0]);
-                
-                if (time < free_time)
-                {
-                    player_adress.transfer(maxPayDeposit);
-                    //EVENT Kostenloser Aufenthalt / Kurzparken
-                    free_parking(player_adress);
-                }
-                else
-                {
-                    uint256 to_pay = time * tariff[parkhaus];
-                    if (to_pay < maxPayDeposit)
-                    {
-                        player_adress.transfer(maxPayDeposit-to_pay);
-                        //EVENT Betrag
-                        pay_fee(player_adress, to_pay, time);
-                    }
-                    else
-                    {
-                        //EVENT Tageshöchstsatz
-                        pay_fee(player_adress, maxPayDeposit, time);
-                    }
-                }
+                player_adress.transfer(maxPayDeposit);
+                //EVENT Kostenloser Aufenthalt / Kurzparken
+                free_parking(player_adress);
             }
             else
             {
-                //ToDO parkIn, parkOut
+                uint256 to_pay = time * tariff[parkhaus];
+                if (to_pay < maxPayDeposit)
+                {
+                    player_adress.transfer(maxPayDeposit-to_pay);
+                    //EVENT Betrag
+                    pay_fee(player_adress, to_pay, time);
+                }
+                else
+                {
+                    //EVENT Tageshöchstsatz
+                    pay_fee(player_adress, maxPayDeposit, time);
+                }
             }
         }
+        else
+        {
+            //ToDO parkIn, parkOut
+        }
+    }
 
+    function freeSpots(uint256 parkhaus)public returns (uint256 frei)
+    {
+        frei = parkLim[parkhaus]-carCount[parkhaus];
+        free_spots(parkhaus, frei);
+        return frei;
+    }
+    
+    function showCar(address car_searched)
+    {
+        uint256 parking_time;
+        address player_adress;
+        uint256 value_now;
+
+        for (uint256 p = 0 ; p < parks ; p++)
+        {
+            for (uint256 k=0;k<parkLim[p];k++)
+            {
+                if (car[p][k][0] == uint256(car_searched))
+                {
+                    if (car[p][k][2] == 0)
+                    {
+                        parking_time = now - car[p][k][1];
+                        player_adress = address(car[p][k][0]);
+                        value_now = parking_time * tariff[p];
+                        
+                        show_car(car_searched, p, parking_time, value_now);
+                        break;
+                    }
+                    else
+                    {
+                        parking_time = now - car[p][k][2];
+                        player_adress = address(car[p][k][0]);
+                        value_now = parking_time * tariff[p];
+                        
+                        show_car(car_searched, p, parking_time, value_now);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 	//#endregion
 }

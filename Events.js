@@ -1,9 +1,9 @@
 
-var browser_ballot_sol_gameContract = web3.eth.contract();
+var browser_ballot_sol_gameContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"parkhaus","type":"uint256"}],"name":"checkOut","outputs":[{"name":"s","type":"string"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"parkhaus","type":"uint256"}],"name":"checkIn","outputs":[{"name":"s","type":"string"}],"payable":true,"stateMutability":"payable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"player","type":"address"},{"indexed":false,"name":"parkhaus","type":"uint256"}],"name":"join_success_In","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"player","type":"address"},{"indexed":false,"name":"parkhaus","type":"uint256"}],"name":"join_success_Out","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"player","type":"address"}],"name":"free_parking","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"player","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"parkingTime","type":"uint256"}],"name":"pay_fee","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"player","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"parkingTime","type":"uint256"}],"name":"pay_max","type":"event"}]);
 
 
 //Addresse von dem Contract eintragen
-var car_park = browser_ballot_sol_gameContract.at('');  
+var car_park = browser_ballot_sol_gameContract.at('0x6d04098761d608aa52260491d79f71cb411b61e5');  
 
 var event_join_success_In = car_park.join_success_In();
 event_join_success_In.watch(function(error, result)
@@ -52,11 +52,11 @@ event_pay_fee.watch(function(error, result)
 {
   if(!error)
   {
-      int h =  result.args.parkingTime/3600;
-      int m =  (result.args.parkingTime - (h*3600))/60;
-      int s = (result.args.parkingTime - (h*3600) - (m*60));
+      var h =  Math.floor(result.args.parkingTime/3600);
+      var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
+      var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
       
-      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr: ' + reslut.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
   }
   else
   {
@@ -70,11 +70,44 @@ event_pay_max.watch(function(error, result)
 {
   if(!error)
   {
-      int h =  result.args.parkingTime/3600;
-      int m =  (result.args.parkingTime - (h*3600))/60;
-      int s = (result.args.parkingTime - (h*3600) - (m*60));
+      var h =  Math.floor(result.args.parkingTime/3600);
+      var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
+      var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
       
-      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr = Tageshöchstsatz: ' + reslut.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr = Tageshöchstsatz: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
+  }
+  else
+  {
+      console.log('Fehler');
+  }
+
+});
+
+var event_free_spots = car_park.free_spots();
+event_free_spots.watch(function(error, result)
+{
+  if(!error)
+  {
+      
+      console.log('Im Parkhaus ' + result.args.parkhaus+ ' sind ' + result.args.frei + ' Parkplätze frei.' );
+  }
+  else
+  {
+      console.log('Fehler');
+  }
+
+});
+
+var event_show_car = car_park.show_car();
+event_show_car.watch(function(error, result)
+{
+  if(!error)
+  {
+      var h =  Math.floor(result.args.parkingTime/3600);
+      var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
+      var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
+      
+      console.log('Das Auto '+ result.args.car ' steht im Parkhaus ' + result.args.parkhaus + ' seit (h:m:s): ' + h + ':' + m + ':' + s + '. Die aktuelle Gebuehr beträgt: ' +  result.args.value_now / 1000000000000000000);
   }
   else
   {
