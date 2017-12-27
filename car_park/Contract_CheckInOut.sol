@@ -56,9 +56,9 @@ contract checkInOut is mortal
 	Event bei erfolgreicher Teilnahme am Spiel
 	@param player - Es wird die Adresse von Spieler ausgegeben
 	*/
-	event join_success_In(address player);
+	event join_success_In(address player, uint256 parkhaus);
 	
-	event join_success_Out(address player);
+	event join_success_Out(address player, uint256 parkhaus);
 	
 	event free_parking(address player);
 	
@@ -132,7 +132,7 @@ contract checkInOut is mortal
 		carCount[parkhaus] +=1;
 
 		//Event auslösen, da die Einfahrt erfolgreich war
-		join_success_In(msg.sender);
+		join_success_In(msg.sender, parkhaus);
 
 	}
 	
@@ -167,7 +167,7 @@ contract checkInOut is mortal
 		        carCount[parkhaus] -=1;
 		
                 //Event auslösen, da die Ausfahrt erfolgreich war
-		        join_success_Out(msg.sender);
+		        join_success_Out(msg.sender, parkhaus);
 		        
 		        break;
 			}
