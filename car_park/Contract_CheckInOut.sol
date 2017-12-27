@@ -23,7 +23,7 @@ contract checkInOut is mortal
 	//array3[] --> parkhaus
 	//array2[] --> autonummer(counter)
 	//array1[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime
-	uint256[5][100][1]  car;
+	uint256[5][10][1]  car;
 
 	//Anzahl der Parkhäuser
 	uint256 parks = 1;
@@ -32,10 +32,20 @@ contract checkInOut is mortal
 	uint256 parkhaus = 0;
 
 	//Parklimit der Parkhäuser[Anzahl der Parkhäuser]
-	uint256[1] parkLim  = [100];
+	uint256[1] parkLim  = [10];
 
 	//Zählerstand der Autos[Anzahl der Parkhäuser]
 	uint256[1] carCount;
+	
+	//Tarif[Anzahl der Parkhäuser] Preis pro Sekunde
+	uint256[1] tariff = [0.00004629629 * 1000000000000000000];
+	//1 Ether = max nach 6h
+	//1/6 Ether pro Stunde
+	//1/360 Ether pro minute
+	//1/(60*360) Ether pro Sekunde = 0.00004629629
+	
+	//Kostenlose Parkdauer
+    uint256 free_time = 2 minutes;
 
 
 	//#endregion
@@ -47,14 +57,13 @@ contract checkInOut is mortal
 	@param player - Es wird die Adresse von Spieler ausgegeben
 	*/
 	event join_success_In(address player);
-
+	
 	event join_success_Out(address player);
 
 
 	//#endregion
 
 	//#region lokale Funktionen
-
 
 
 	//#endregion
@@ -119,24 +128,74 @@ contract checkInOut is mortal
 		join_success_In(msg.sender);
 
 	}
-
+	
 	function checkOut(uint256 parkhaus)  payable public returns (string s)
 	{
 	    uint id_car = uint(msg.sender);
+			
 	    for (uint256 i=0; i < parkLim[parkhaus];i++)
 		{
+		    
 			if (car[parkhaus][i][0] == id_car)
 			{
 			    //checkOutTime des Autos speichern
 	        	car[parkhaus][i][4] = now;
+	        	uint256 clean_num = i;
+	        	
+	        	//Autozahl reduzieren
+		        carCount[parkhaus] -=1;
+		
+                //Event auslösen, da die Ausfahrt erfolgreich war
+		        join_success_Out(msg.sender);
+		        
+		        payNow(clean_num,parkhaus);
+		        
+		        for (uint256 k=clean_num;k < parkLim[parkhaus]-1;k++)
+		        {
+		            for (uint256 j=0;j<5;j++)
+		            {
+		                car[parkhaus][k][j] = car[parkhaus][k+1][j];
+		            }
+		        }
+		        for (j=0;j<5;j++)
+	            {
+	                car[parkhaus][99][j] = 0;
+                }
 			}
 		}
-		 //Autozahl reduzieren
-		carCount[parkhaus] -=1;
-
-    //Event auslösen, da die Ausfahrt erfolgreich war
-		join_success_Out(msg.sender);
 	}
+	
+	    function payNow(uint256 carnum, uint256 parkhaus) private
+        {
+            if (car[parkhaus][carnum][2] == 0 && car[parkhaus][carnum][3] == 0)
+            {
+                uint256 time = car[parkhaus][carnum][4] - car[parkhaus][carnum][1];
+                address player_adress = address(car[parkhaus][carnum][0]);
+                
+                if (time < free_time)
+                {
+                    player_adress.transfer(maxPayDeposit);
+                    //EVENT Kostenloser Aufenthalt / Kurzparken
+                }
+                else
+                {
+                    uint256 to_pay = time * tariff[parkhaus];
+                    if (to_pay < maxPayDeposit)
+                    {
+                        player_adress.transfer(maxPayDeposit-to_pay);
+                        //EVENT Betrag
+                    }
+                    else
+                    {
+                        //EVENT Tageshöchstsatz
+                    }
+                }
+            }
+            else
+            {
+                //ToDO parkIn, parkOut
+            }
+        }
 
 	//#endregion
 }
