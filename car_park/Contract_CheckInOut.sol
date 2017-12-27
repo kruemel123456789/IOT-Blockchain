@@ -59,7 +59,14 @@ contract checkInOut is mortal
 	event join_success_In(address player);
 	
 	event join_success_Out(address player);
-
+	
+	event free_parking(address player);
+	
+	event pay_fee(address player, uint256 value, uint256 parkingTime);
+	
+	event pay_max(address player, uint256 value, uint256 parkingTime);
+	
+	
 
 	//#endregion
 
@@ -142,12 +149,6 @@ contract checkInOut is mortal
 	        	car[parkhaus][i][4] = now;
 	        	uint256 clean_num = i;
 	        	
-	        	//Autozahl reduzieren
-		        carCount[parkhaus] -=1;
-		
-                //Event auslösen, da die Ausfahrt erfolgreich war
-		        join_success_Out(msg.sender);
-		        
 		        payNow(clean_num,parkhaus);
 		        
 		        for (uint256 k=clean_num;k < parkLim[parkhaus]-1;k++)
@@ -159,8 +160,16 @@ contract checkInOut is mortal
 		        }
 		        for (j=0;j<5;j++)
 	            {
-	                car[parkhaus][99][j] = 0;
+	                car[parkhaus][parkLim[parkhaus]-1][j] = 0;
                 }
+                
+                //Autozahl reduzieren
+		        carCount[parkhaus] -=1;
+		
+                //Event auslösen, da die Ausfahrt erfolgreich war
+		        join_success_Out(msg.sender);
+		        
+		        break;
 			}
 		}
 	}
@@ -176,6 +185,7 @@ contract checkInOut is mortal
                 {
                     player_adress.transfer(maxPayDeposit);
                     //EVENT Kostenloser Aufenthalt / Kurzparken
+                    free_parking(player_adress);
                 }
                 else
                 {
@@ -184,10 +194,12 @@ contract checkInOut is mortal
                     {
                         player_adress.transfer(maxPayDeposit-to_pay);
                         //EVENT Betrag
+                        pay_fee(player_adress, to_pay, time);
                     }
                     else
                     {
                         //EVENT Tageshöchstsatz
+                        pay_fee(player_adress, maxPayDeposit, time);
                     }
                 }
             }
