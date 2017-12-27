@@ -10,7 +10,7 @@ event_join_success_In.watch(function(error, result)
 {
   if(!error)
   {
-      console.log('Erfolgreiche Einfahrt in Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Erfolgreiche Einfahrt in Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {
@@ -24,7 +24,7 @@ event_join_success_Out.watch(function(error, result)
 {
   if(!error)
   {
-      console.log('Erfolgreiche Ausfahrt aus Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Erfolgreiche Ausfahrt aus Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {
@@ -38,7 +38,7 @@ event_free_parking.watch(function(error, result)
 {
   if(!error)
   {
-      console.log('Mindestparkdauer unterschritten --> Der Aufenthalt war kostenlos' + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Mindestparkdauer unterschritten --> Der Aufenthalt war kostenlos' + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {
@@ -56,7 +56,7 @@ event_pay_fee.watch(function(error, result)
       var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
       var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
       
-      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {
@@ -74,7 +74,7 @@ event_pay_max.watch(function(error, result)
       var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
       var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
       
-      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr = Tageshöchstsatz: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.player + ')' );
+      console.log('Aufenthaltsdauer (h:m:s): ' + h + ':' + m + ':' + s + 'Parkgebühr = Tageshöchstsatz: ' + result.args.value / 1000000000000000000 + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {
@@ -107,7 +107,35 @@ event_show_car.watch(function(error, result)
       var m =  Math.floor((result.args.parkingTime - (h*3600))/60);
       var s =  Math.floor((result.args.parkingTime - (h*3600) - (m*60)));
       
-      console.log('Das Auto '+ result.args.car ' steht im Parkhaus ' + result.args.parkhaus + ' seit (h:m:s): ' + h + ':' + m + ':' + s + '. Die aktuelle Gebuehr beträgt: ' +  result.args.value_now / 1000000000000000000);
+      console.log('Das Auto '+ result.args.car ' steht im Parkhaus ' + result.args.parkhaus + ' auf Parkplatz ' + result.args.parkplatz + ' seit (h:m:s): ' + h + ':' + m + ':' + s + '. Die aktuelle Gebuehr beträgt: ' +  result.args.value_now / 1000000000000000000);
+  }
+  else
+  {
+      console.log('Fehler');
+  }
+
+});
+
+var event_park_success_In = car_park.park_success_In();
+event_park_success_In.watch(function(error, result)
+{
+  if(!error)
+  {
+      console.log('Erfolgreicher Halt auf Parkplatz ' + result.args.parkplatz + 'im Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.car + ')' );
+  }
+  else
+  {
+      console.log('Fehler');
+  }
+
+});
+
+var event_park_success_Out = car_park.park_success_Out();
+event_park_success_Out.watch(function(error, result)
+{
+  if(!error)
+  {
+      console.log('Erfolgreiches Wegfahren von Parkplatz ' + result.args.parkplatz + 'in Parkhaus: ' + result.args.parkhaus  + ' (Adresse des Autos: ' + result.args.car + ')' );
   }
   else
   {

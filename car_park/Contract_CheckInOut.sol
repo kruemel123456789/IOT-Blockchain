@@ -22,8 +22,8 @@ contract checkInOut is mortal
 
 	//array3[] --> parkhaus
 	//array2[] --> autonummer(counter)
-	//array1[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime
-	uint256[5][10][1]  car;
+	//array1[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime:parkplatz
+	uint256[6][10][1]  car;
 
 	//Anzahl der Parkhäuser
 	uint256 parks = 1;
@@ -37,17 +37,13 @@ contract checkInOut is mortal
 	//Zählerstand der Autos[Anzahl der Parkhäuser]
 	uint256[1] carCount;
 	
-	//Tarif[Anzahl der Parkhäuser] Preis pro Sekunde
+    //Tarif[Anzahl der Parkhäuser] Preis pro Sekunde
 	uint256[1] tariff = [0.00004629629 * 1000000000000000000];
 	//1 Ether = max nach 6h
 	//1/6 Ether pro Stunde
 	//1/360 Ether pro minute
 	//1/(60*360) Ether pro Sekunde = 0.00004629629
 	
-	//Kostenlose Parkdauer
-    uint256 free_time = 2 minutes;
-
-
 	//#endregion
 
 	//#region Events
@@ -60,17 +56,13 @@ contract checkInOut is mortal
 	
 	event join_success_Out(address car, uint256 parkhaus);
 	
-	event free_parking(address car);
-	
-	event pay_fee(address car, uint256 value, uint256 parkingTime);
-	
-	event pay_max(address car, uint256 value, uint256 parkingTime);
-	
 	event free_spots(uint256 parkhaus, uint256 frei);
 	
-	event show_car(address car,uint256 parkhaus, uint256 parkingTime, uint256 value_now);
+	event show_car(address car,uint256 parkhaus, uint256 parkingTime, uint256 value_now, uint256 parkplatz);
 	
+	event park_success_In(address car, uint256 parkhaus, uint256 parkplatz);
 	
+	event park_success_Out(address car, uint256 parkhaus, uint256 parkplatz);
 
 	//#endregion
 
@@ -153,16 +145,16 @@ contract checkInOut is mortal
 	        	car[parkhaus][i][4] = now;
 	        	uint256 clean_num = i;
 	        	
-		        payNow(clean_num,parkhaus);
+		        parkingLot.payNow(clean_num,parkhaus,car,maxPayDeposit,tariff);
 		        
 		        for (uint256 k=clean_num;k < parkLim[parkhaus]-1;k++)
 		        {
-		            for (uint256 j=0;j<5;j++)
+		            for (uint256 j=0;j<6;j++)
 		            {
 		                car[parkhaus][k][j] = car[parkhaus][k+1][j];
 		            }
 		        }
-		        for (j=0;j<5;j++)
+		        for (j=0;j<6;j++)
 	            {
 	                car[parkhaus][parkLim[parkhaus]-1][j] = 0;
                 }
@@ -177,41 +169,7 @@ contract checkInOut is mortal
 			}
 		}
 	}
-	
-    function payNow(uint256 carnum, uint256 parkhaus) private
-    {
-        if (car[parkhaus][carnum][2] == 0 && car[parkhaus][carnum][3] == 0)
-        {
-            uint256 time = car[parkhaus][carnum][4] - car[parkhaus][carnum][1];
-            address player_adress = address(car[parkhaus][carnum][0]);
-            
-            if (time < free_time)
-            {
-                player_adress.transfer(maxPayDeposit);
-                //EVENT Kostenloser Aufenthalt / Kurzparken
-                free_parking(player_adress);
-            }
-            else
-            {
-                uint256 to_pay = time * tariff[parkhaus];
-                if (to_pay < maxPayDeposit)
-                {
-                    player_adress.transfer(maxPayDeposit-to_pay);
-                    //EVENT Betrag
-                    pay_fee(player_adress, to_pay, time);
-                }
-                else
-                {
-                    //EVENT Tageshöchstsatz
-                    pay_fee(player_adress, maxPayDeposit, time);
-                }
-            }
-        }
-        else
-        {
-            //ToDO parkIn, parkOut
-        }
-    }
+
 
     function freeSpots(uint256 parkhaus)public returns (uint256 frei)
     {
@@ -225,7 +183,8 @@ contract checkInOut is mortal
         uint256 parking_time;
         address player_adress;
         uint256 value_now;
-
+        uint256 parkplatz;
+        
         for (uint256 p = 0 ; p < parks ; p++)
         {
             for (uint256 k=0;k<parkLim[p];k++)
@@ -237,8 +196,9 @@ contract checkInOut is mortal
                         parking_time = now - car[p][k][1];
                         player_adress = address(car[p][k][0]);
                         value_now = parking_time * tariff[p];
+                        parkplatz = car[p][k][5];
                         
-                        show_car(car_searched, p, parking_time, value_now);
+                        show_car(car_searched, p, parking_time, value_now, parkplatz);
                         break;
                     }
                     else
@@ -246,13 +206,56 @@ contract checkInOut is mortal
                         parking_time = now - car[p][k][2];
                         player_adress = address(car[p][k][0]);
                         value_now = parking_time * tariff[p];
+                        parkplatz = car[p][k][5];
                         
-                        show_car(car_searched, p, parking_time, value_now);
+                        show_car(car_searched, p, parking_time, value_now, parkplatz);
                         break;
                     }
                 }
             }
         }
+    }
+    
+    function parkIn(uint256 parkhaus, uint256 parkplatz) public returns (string s)
+    {
+        for (uint256 i=0; i < parkLim[parkhaus];i++)
+		{
+		    uint id_car = uint(msg.sender);
+			if (car[parkhaus][i][0] == id_car && car[parkhaus][i][2]==0)
+			{
+        		//checkInTime des Autos speichern
+        		car[parkhaus][i][2] = now;
+        
+        		//Parkplatz speichern
+        		car[parkhaus][i][5] = parkplatz;
+        		
+        		//Event auslösen, da das Parken erfolgreich war
+        		park_success_In(msg.sender, parkhaus, parkplatz);
+        		break;
+			}
+		}
+		if(debug == 1){ return("Auto nicht vorhanden");}
+		if(debug == 0){ revert(); }
+    }
+    
+    function parkOut(uint256 parkhaus) public
+    {
+        uint id_car = uint(msg.sender);
+			
+	    for (uint256 i=0; i < parkLim[parkhaus];i++)
+		{
+		    
+			if (car[parkhaus][i][0] == id_car && car[parkhaus][i][3] == 0)
+			{
+			    //parkOutTime des Autos speichern
+	        	car[parkhaus][i][3] = now;
+		
+                //Event auslösen, da die Ausfahrt erfolgreich war
+		        park_success_Out(msg.sender, parkhaus,car[parkhaus][i][5]);
+		        
+		        break;
+			}
+		}
     }
 	//#endregion
 }
