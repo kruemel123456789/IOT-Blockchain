@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
-import "browser/Contract_ParkingLot.sol"; //import {parkingLot} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_ParkingLot.sol";
-import "browser/Contract_Mortal.sol"; //import {mortal} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_Mortal.sol";
+import "browser/ParkingLot.sol"; //import {parkingLot} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_ParkingLot.sol";
+import "browser/Mortal.sol"; //import {mortal} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contract_Mortal.sol";
 /*
 Um die Events nutzen zu können, sollte "Events.js" in einer eigenen Console geladen werden
 */
@@ -20,25 +20,25 @@ contract checkInOut is mortal
 	//Zeitpunkt, zu dem genung Mitspieler vorhanden sind
 	uint256 startTime;
 
-	//array3[] --> parkhaus
+	//array3[] --> parkhaus[Anzahl der Parkhäuser]
 	//array2[] --> autonummer(counter)
 	//array1[5] --> ID:checkInTime:parkInTime:parkOutTime:checkOutTime:parkplatz
-	uint256[6][10][1]  car;
+	uint256[6][10][2]  car;
 
 	//Anzahl der Parkhäuser
-	uint256 parks = 1;
+	uint256 parks = 2;
 
 	//Parkhaus
 	uint256 parkhaus = 0;
 
 	//Parklimit der Parkhäuser[Anzahl der Parkhäuser]
-	uint256[1] parkLim  = [10];
+	uint256[2] parkLim  = [10,10];
 
 	//Zählerstand der Autos[Anzahl der Parkhäuser]
-	uint256[1] carCount;
+	uint256[2] carCount;
 	
     //Tarif[Anzahl der Parkhäuser] Preis pro Sekunde
-	uint256[1] tariff = [0.00004629629 * 1000000000000000000];
+	uint256[2] tariff = [0.00004629629 * 1000000000000000000,0.00004629629 * 1000000000000000000];
 	//1 Ether = max nach 6h
 	//1/6 Ether pro Stunde
 	//1/360 Ether pro minute
@@ -171,11 +171,16 @@ contract checkInOut is mortal
 	}
 
 
-    function freeSpots(uint256 parkhaus)public returns (uint256 frei)
+    function freeSpots(uint256 parkhaus)private returns (uint256 frei)
     {
         frei = parkLim[parkhaus]-carCount[parkhaus];
-        free_spots(parkhaus, frei);
         return frei;
+    }
+    
+    function checkCarPark(uint256 parkhaus)public
+    {
+        uint256 frei = parkLim[parkhaus]-carCount[parkhaus];
+        free_spots(parkhaus, frei);
     }
     
     function showCar(address car_searched)
@@ -231,7 +236,7 @@ contract checkInOut is mortal
         		
         		//Event auslösen, da das Parken erfolgreich war
         		park_success_In(msg.sender, parkhaus, parkplatz);
-        		break;
+        		return ("");
 			}
 		}
 		if(debug == 1){ return("Auto nicht vorhanden");}

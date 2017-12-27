@@ -15,7 +15,7 @@ library parkingLot
 	event pay_max(address car, uint256 value, uint256 parkingTime);
     
     
-    function payNow(uint256 carnum, uint256 parkhaus, uint256[6][10][1]  car, uint256 maxPayDeposit, uint256[1] tariff) public
+    function payNow(uint256 carnum, uint256 parkhaus, uint256[6][10][2]  car, uint256 maxPayDeposit, uint256[2] tariff) public
     {
         uint256 time;
         address player_adress;
