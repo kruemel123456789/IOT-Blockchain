@@ -8,7 +8,7 @@ import {mortal} from "github.com/kruemel123456789/IOT-Blockchain/car_park/Contra
 
 
 //Contract für das Parkhaus, erbt von mortal
-contract checkInOut is mortal
+contract CarPark is mortal
 {
 	//#region Variablen und Konstanten Deklaration
 
