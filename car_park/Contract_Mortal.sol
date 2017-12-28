@@ -1,4 +1,6 @@
 //Cotract um alle Ether aus dem Contract an den Owner zu schicken und den Contract zu löschen
+pragma solidity ^0.4.18;
+
 contract mortal
 {
  /* Define variable owner of the type address */
