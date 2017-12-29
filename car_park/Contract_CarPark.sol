@@ -97,7 +97,7 @@ contract CarPark is mortal
 	function payNow(uint256 carnum, uint256 parkhaus) internal
 	{
 		uint256 time;
-		address car_adress;
+		address car_address;
 		uint256 to_pay;
 
 		//Auswahl der Zeiten für unterschiedliche Situationen (falls kein Parkplatz erreicht oder verlassen wird oder der zeitliche Abstand zu groß ist)
@@ -161,13 +161,13 @@ contract CarPark is mortal
 		}
 
 		//Adresse des Autos zwischenspeichern
-		car_adress = address(car[parkhaus][carnum][0]);
+		car_address = address(car[parkhaus][carnum][0]);
 
 		//Wenn unter Mindestparkdauer, dann alles zurück zahlen
 		if (time < free_time)
 		{
-			car_adress.transfer(maxPayDeposit);
-			free_parking(car_adress);
+			car_address.transfer(maxPayDeposit);
+			free_parking(car_address);
 		}
 		
 		//Sonst entweder nichts zurück zahlen oder nur einen Teil, entsprechend der Zeit
@@ -177,12 +177,12 @@ contract CarPark is mortal
 			
 			if (to_pay < maxPayDeposit)
 			{
-				car_adress.transfer(maxPayDeposit-to_pay);
-				pay_fee(car_adress, to_pay, time);
+				car_address.transfer(maxPayDeposit-to_pay);
+				pay_fee(car_address, to_pay, time);
 			}
 			else
 			{
-				pay_max(car_adress, maxPayDeposit, time);
+				pay_max(car_address, maxPayDeposit, time);
 			}
 		}
 	}
